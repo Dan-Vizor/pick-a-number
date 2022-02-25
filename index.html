@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<style>
+		* {
+			background-color: #242626;
+			font-family: Arial, sans-serif;
+			color: lightgray;
+		}
+
+		a {
+			color: #55cadf;
+		}
+	</style>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Pick a Number</title>
+</head>
+
+<body>
+	<div id="container" style="width:100%; text-align: center">
+		<div id="left" style="float:left; width: 50%;">
+			<img id="LeftDice" src="images/1.png">
+
+		</div>
+
+		<div id="right" style="float:left; width: 50%;">
+			<img id="RightDice" src="images/6.png">
+		</div>
+	</div>
+
+	<h2 id="TotalDisplay" style="text-align:center; font-size: 250%;">roll the dice</h2>
+
+	<script type="text/javascript">
+		function RandomInt(min, max) { // min and max included 
+			return Math.floor(Math.random() * (max - min + 1) + min);
+		};
+
+		function DiceAnimation(frames) {
+			let index = 1
+
+			const i = setInterval(() => {
+				document.getElementById("LeftDice").src = "images/"+RandomInt(1,6)+".png";
+				document.getElementById("RightDice").src = "images/"+RandomInt(1,6)+".png";
+				if (index >= frames) {
+					clearInterval(i);
+				};
+			}, 400);
+		};
+
+		function roll() {
+			let LeftRoll = RandomInt(1,6);
+			let RightRoll = RandomInt(1,6);
+			let total = LeftRoll + RightRoll;
+			console.log(LeftRoll, RightRoll, total);
+
+			// dice animation
+			let frame = 0
+			const i = setInterval(() => {
+				frame ++
+				document.getElementById("LeftDice").src = "images/"+RandomInt(1,6)+".png";
+				document.getElementById("RightDice").src = "images/"+RandomInt(1,6)+".png";
+				if (frame >= 20) {
+					document.getElementById("LeftDice").src = "images/"+LeftRoll+".png";
+					document.getElementById("RightDice").src = "images/"+RightRoll+".png";
+					document.getElementById("TotalDisplay").innerHTML = "<b>"+total+"</b>";
+					clearInterval(i);
+				};
+			}, 200);
+		};
+	</script>
+</body>
+
+<footer>
+	<b>score: </b><span id="ScoreCounter">100</span><br><br>
+
+	<label for="bet">bet ammount:</label>
+	<select name="bet" id="bet">
+		<option value="bet100">100</option>
+		<option value="bet500">500</option>
+		<option value="bet1000">1000</option>
+		<option value="bet2000">2000</option>
+	</select><br>
+
+	<label for="range">select a range:</label>
+	<select name="range" id="range">
+		<option value="RangeLow">2 - 6</option>
+		<option value="RangeMid">7</option>
+		<option value="RangeHigh">8 - 12</option>
+	</select><br>
+	
+	<button onclick="roll()">roll the dice</button>
+</footer>
+</html>
+
+<!--
+icons from: https://game-icons.net/tags/dice.html
+-->
