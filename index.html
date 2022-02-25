@@ -49,10 +49,49 @@
 		};
 
 		function roll() {
+			document.getElementById("ResultMessage").innerHTML = ""; //clear result message
+			document.getElementById("TotalDisplay").innerHTML = "rolling..."
+
+			let score = parseInt(document.getElementById("ScoreCounter").textContent);
+			let RangeSelection = document.getElementById("range").value;
+			let BetSelection = document.getElementById("bet").value;
+
+			if (score <=0) {
+				document.getElementById("TotalDisplay").innerHTML = "<p style='color:red;'>out of money</p>";
+				return;
+			};
+
+			if (BetSelection > score) {
+				document.getElementById("ResultMessage").innerHTML = "<p style='color:red;'>not enough money to bet that</p>";
+				document.getElementById("TotalDisplay").innerHTML = "";
+				return;
+			};
+
 			let LeftRoll = RandomInt(1,6);
 			let RightRoll = RandomInt(1,6);
 			let total = LeftRoll + RightRoll;
-			console.log(LeftRoll, RightRoll, total);
+			// calculate win or loss
+			let result = "";
+			if (total <= 6 && RangeSelection == "RangeLow" || total == 7 && RangeSelection == "RangeMid" || total >= 8 && RangeSelection == "RangeHigh") {
+				console.log("win");
+				if (total == 7) {
+					score = score + BetSelection * 3;
+					result = "<p style='color:green;'>You win £"+BetSelection * 3+"</p>";
+
+				} else {
+					score = score + BetSelection * 2;
+					result = "<p style='color:green;'>You win £"+BetSelection * 2+"</p>";
+				};
+
+			} else {
+				console.log("loss");
+				score = score - BetSelection
+				result = "<p style='color:red;'>you lose -£"+BetSelection+"</p>";
+			};
+
+			// sound effect
+			const audio = new Audio("DiceSound.mp3");
+			audio.play();
 
 			// dice animation
 			let frame = 0
@@ -60,26 +99,33 @@
 				frame ++
 				document.getElementById("LeftDice").src = "images/"+RandomInt(1,6)+".png";
 				document.getElementById("RightDice").src = "images/"+RandomInt(1,6)+".png";
-				if (frame >= 20) {
+
+				if (frame >= 15) {
 					document.getElementById("LeftDice").src = "images/"+LeftRoll+".png";
 					document.getElementById("RightDice").src = "images/"+RightRoll+".png";
 					document.getElementById("TotalDisplay").innerHTML = "<b>"+total+"</b>";
+					document.getElementById("ResultMessage").innerHTML = result;
+					document.getElementById("ScoreCounter").innerHTML = score;
 					clearInterval(i);
+
+					if (score <=0) {
+						document.getElementById("TotalDisplay").innerHTML = "<p style='color:red;'>out of money</p>";
+					};
 				};
-			}, 200);
+			}, 80);
 		};
 	</script>
 </body>
 
 <footer>
-	<b>score: </b><span id="ScoreCounter">100</span><br><br>
+	<b>money:</b> £<span id="ScoreCounter">500</span><br><br>
 
 	<label for="bet">bet ammount:</label>
 	<select name="bet" id="bet">
-		<option value="bet100">100</option>
-		<option value="bet500">500</option>
-		<option value="bet1000">1000</option>
-		<option value="bet2000">2000</option>
+		<option value="100">£100</option>
+		<option value="500">£500</option>
+		<option value="1000">£1000</option>
+		<option value="2000">£2000</option>
 	</select><br>
 
 	<label for="range">select a range:</label>
@@ -89,7 +135,9 @@
 		<option value="RangeHigh">8 - 12</option>
 	</select><br>
 	
-	<button onclick="roll()">roll the dice</button>
+	<button onclick="roll()" style="width:10%; height: 35px;"><b>roll the dice</b></button><br>
+
+	<b><p id="ResultMessage"></p></b>
 </footer>
 </html>
 
