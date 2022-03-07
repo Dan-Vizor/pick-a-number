@@ -7,7 +7,7 @@
 			background-color: #242626;
 			font-family: Arial, sans-serif;
 			color: lightgray;
-			font-size: 120%;
+			font-size: 105%;
 		}
 
 		a {
@@ -32,9 +32,74 @@
 
 	<h2 id="TotalDisplay" style="text-align:center; font-size: 500%;">roll the dice</h2>
 
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/core.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/md5.js"></script>
 	<script type="text/javascript">
 		function RandomInt(min, max) { // min and max included 
 			return Math.floor(Math.random() * (max - min + 1) + min);
+		};
+
+		function getCookie(name) {
+			var dc = document.cookie;
+			var prefix = name + "=";
+			var begin = dc.indexOf("; " + prefix);
+			if (begin == -1) {
+				begin = dc.indexOf(prefix);
+				if (begin != 0) return null;
+
+			} else {
+				begin += 2;
+				var end = document.cookie.indexOf(";", begin);
+				if (end == -1) {
+				end = dc.length;
+				};
+			};
+			return decodeURI(dc.substring(begin + prefix.length, end));
+		};
+
+		function ParseCode() {
+			var code = document.getElementById("CodeBox").value;
+			let UsedCodes = getCookie("UsedCodes")
+			let ScoreToAdd = code.split("+")[0];
+			let timestamp = code.split("+")[1];
+			let checksum = code.split("+")[2];
+
+			document.getElementById("CodeBox").value = "";
+
+			if (UsedCodes.split(",").includes(checksum)) {
+				console.log("used hash");
+				document.getElementById("CodeMessage").innerHTML = "invalid code (already used)";
+				return;
+			};
+
+			let LocalHash = CryptoJS.MD5(ScoreToAdd+timestamp+"8826094385828736")
+			if (checksum == LocalHash) {
+				let score = parseInt(getCookie("score"));
+				let NewScore = score + parseInt(ScoreToAdd);
+
+				document.getElementById("ScoreCounter").innerHTML = NewScore;
+				document.cookie = "score=" + NewScore + ";max-age=31536000;path=/;SameSite=Lax";
+				document.cookie = "UsedCodes=" + UsedCodes + LocalHash + "," + ";max-age=31536000;path=/;SameSite=Lax";
+				document.getElementById("CodeMessage").innerHTML = "valid code +£" + ScoreToAdd;
+				console.log("valid code '"+code+"'");
+
+			}else{
+				document.getElementById("CodeMessage").innerHTML = "invalid code";
+				console.log("invalid code '"+code+"'");
+			};
+		};
+
+		window.onload = function(){
+			if (getCookie("score") == null) {
+				document.getElementById("ScoreCounter").innerHTML = 500;
+				document.cookie = "score=" + 500 + ";max-age=31536000;path=/;SameSite=Lax";
+				document.cookie = "UsedCodes=;max-age=31536000;path=/;SameSite=Lax";
+				console.log("new player");
+
+			} else {
+				let score = parseInt(getCookie("score"));
+				document.getElementById("ScoreCounter").innerHTML = score;
+			};
 		};
 
 		function DiceAnimation(frames) {
@@ -53,7 +118,7 @@
 			document.getElementById("ResultMessage").innerHTML = ""; //clear result message
 			document.getElementById("TotalDisplay").innerHTML = "rolling..."
 
-			let score = parseInt(document.getElementById("ScoreCounter").textContent);
+			let score = parseInt(getCookie("score"));
 			let RangeSelection = document.getElementById("range").value;
 			let BetSelection = document.getElementById("bet").value;
 
@@ -107,6 +172,9 @@
 					document.getElementById("TotalDisplay").innerHTML = "<b>"+total+"</b>";
 					document.getElementById("ResultMessage").innerHTML = result;
 					document.getElementById("ScoreCounter").innerHTML = score;
+
+					document.cookie = "score=" + score + ";max-age=31536000;path=/;SameSite=Lax";
+					console.log(getCookie("score"))
 					clearInterval(i);
 
 					if (score <=0) {
@@ -119,26 +187,35 @@
 </body>
 
 <footer>
-	<b>money:</b> £<span id="ScoreCounter">500</span><br><br>
+	<div style="float:left; padding-left:1%;">
+		<b>money:</b> £<span id="ScoreCounter">0</span><br><br>
 
-	<label for="bet">bet ammount:</label>
-	<select name="bet" id="bet">
-		<option value="100">£100</option>
-		<option value="500">£500</option>
-		<option value="1000">£1000</option>
-		<option value="2000">£2000</option>
-	</select><br>
+		<label for="bet">bet ammount:</label>
+		<select name="bet" id="bet">
+			<option value="100">£100</option>
+			<option value="500">£500</option>
+			<option value="1000">£1000</option>
+			<option value="2000">£2000</option>
+		</select><br>
 
-	<label for="range">select a range:</label>
-	<select name="range" id="range">
-		<option value="RangeLow">2 - 6</option>
-		<option value="RangeMid">7</option>
-		<option value="RangeHigh">8 - 12</option>
-	</select><br>
-	
-	<button onclick="roll()"><b>roll the dice</b></button><br>
+		<label for="range">select a range:</label>
+		<select name="range" id="range">
+			<option value="RangeLow">2 - 6</option>
+			<option value="RangeMid">7</option>
+			<option value="RangeHigh">8 - 12</option>
+		</select><br>
+		
+		<button onclick="roll()"><b>roll the dice</b></button><br>
 
-	<b><p id="ResultMessage"></p></b>
+		<b><p id="ResultMessage"></p></b>
+	</div>
+
+	<div style="float:right; padding-right:1%;">
+		<input type="text" id="CodeBox">
+		<button onclick="ParseCode()"><b>submit code</b></button>
+		<br><br>
+		<b><span id="CodeMessage"></span></b>
+	</div>
 </footer>
 </html>
 
